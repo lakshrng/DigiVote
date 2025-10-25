@@ -14,6 +14,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship,
 from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime
 import uuid
+from contextlib import contextmanager
 
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+psycopg://postgres:1234@localhost:5432/digi-voter")
@@ -38,16 +39,42 @@ class User(Base):
     
     id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
     email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    phone: Mapped[str] = mapped_column(String(15), nullable=True, unique=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     first_name: Mapped[str] = mapped_column(String(100), nullable=False)
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), nullable=False, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     student: Mapped["Student"] = relationship(back_populates="user", uselist=False, cascade="all, delete-orphan")
-    candidates: Mapped[list["Candidate"]] = relationship(back_populates="student", cascade="all, delete-orphan")
+    otps: Mapped[list["OTP"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+
+
+class OTP(Base):
+    """Stores OTP codes for email and phone verification."""
+    __tablename__ = "otps"
+    
+    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    code: Mapped[str] = mapped_column(String(6), nullable=False)
+    otp_type: Mapped[str] = mapped_column(String(10), nullable=False)  # 'email' or 'phone'
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), nullable=False)
+    is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), nullable=False, default=datetime.utcnow)
+    
+    # Relationships
+    user: Mapped["User"] = relationship(back_populates="otps")
+    
+    # Check constraint for valid OTP types
+    __table_args__ = (
+        CheckConstraint(
+            "otp_type IN ('email', 'phone')",
+            name="ck_otp_type"
+        ),
+    )
 
 
 class College(Base):
@@ -224,16 +251,19 @@ def create_all_tables() -> None:
     Base.metadata.create_all(bind=engine)
 
 
-def get_session() -> Generator[Session, None, None]:
+@contextmanager
+def get_session():
     session = SessionLocal()
     try:
+        print("🔍 DEBUG: Starting database session")
         yield session
+        print("🔍 DEBUG: About to commit database session")
         session.commit()
-    except Exception:
+        print("🔍 DEBUG: Database session committed successfully")
+    except Exception as e:
+        print(f"🔍 DEBUG: Exception occurred, rolling back: {e}")
         session.rollback()
         raise
     finally:
+        print("🔍 DEBUG: Closing database session")
         session.close()
-
-
-
