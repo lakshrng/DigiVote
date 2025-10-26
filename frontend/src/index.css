@@ -1,0 +1,14 @@
+:root { color-scheme: light dark; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+.container { max-width: 720px; margin: 40px auto; padding: 0 16px; }
+h1 { font-size: 1.75rem; margin: 0 0 16px; }
+.row { display: flex; gap: 8px; margin-bottom: 16px; }
+input { flex: 1; padding: 10px 12px; border-radius: 8px; border: 1px solid #8884; }
+button { padding: 10px 16px; border-radius: 8px; border: 0; background: #2563eb; color: white; cursor: pointer; }
+button:hover { background: #1d4ed8; }
+.list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.list li { padding: 10px 12px; border: 1px solid #8884; border-radius: 8px; }
+.error { color: #dc2626; margin-bottom: 8px; }
+
+
