@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 
 from database import create_all_tables
 from routes.auth_routes import auth_bp
+from routes.candidate_routes import candidate_bp
 
 
 def create_app() -> Flask:
@@ -24,8 +25,9 @@ def create_app() -> Flask:
     def health():
         return jsonify({"status": "ok"})
 
-    # Register auth blueprint
+    # Register blueprints
     app.register_blueprint(auth_bp)
+    app.register_blueprint(candidate_bp)
 
     return app
 

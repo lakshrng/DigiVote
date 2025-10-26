@@ -69,7 +69,7 @@ def create_otp(user_id: str, otp_type: str, session=None, expires_minutes: int =
         session.add(otp)
     else:
         # Fallback to creating a new session (for backward compatibility)
-        for session in get_session():
+        with get_session() as session:
             # Invalidate any existing unused OTPs of the same type
             session.query(OTP).filter(
                 OTP.user_id == user_id,
@@ -190,7 +190,7 @@ def send_sms_otp(phone: str, otp_code: str) -> bool:
 
 def get_user_by_email_or_phone(identifier: str) -> Optional[User]:
     """Get user by email or phone number."""
-    for session in get_session():
+    with get_session() as session:
         # Try to find by email first
         user = session.query(User).filter(User.email == identifier).first()
         if user:
