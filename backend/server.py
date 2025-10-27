@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from database import create_all_tables
 from routes.auth_routes import auth_bp
 from routes.candidate_routes import candidate_bp
+from routes.voting import voting_bp
+from routes.results import results_bp
 
 
 def create_app() -> Flask:
@@ -28,6 +30,8 @@ def create_app() -> Flask:
     # Register blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(candidate_bp)
+    app.register_blueprint(voting_bp, url_prefix='/api')
+    app.register_blueprint(results_bp, url_prefix='/api')
 
     return app
 
@@ -36,5 +40,3 @@ if __name__ == "__main__":
     app = create_app()
     port = int(os.getenv("PORT", "5000"))
     app.run(host="0.0.0.0", port=port, debug=False)
-
-

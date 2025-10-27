@@ -89,3 +89,28 @@ These are defined in `backend/database.py` using SQLAlchemy 2.0 style.
 ## Notes
 - Uses SQLAlchemy 2.0 with `psycopg` 3 (binary extras) for PostgreSQL.
 - Adjust `ALLOWED_ORIGINS` if accessing the API from other origins.
+
+
+
+## Voting & Results API
+
+### Voting Endpoints
+- `GET /api/elections/active` - Get all active elections
+- `GET /api/elections/{id}/ballot` - Get election ballot with candidates
+- `GET /api/elections/{id}/voted/{student_id}` - Check if student has voted
+- `POST /api/vote` - Submit a vote
+
+### Results Endpoints
+- `GET /api/elections/completed` - Get list of completed elections
+- `GET /api/elections/{id}/results` - Get election results (admin or after election ends)
+- `POST /api/elections/{id}/publish` - Publish election results (admin only)
+
+
+### Testing
+```bash
+# Initialize database with test data
+python backend/init_db.py --seed
+
+# Run API tests
+python backend/test_routes.py
+```

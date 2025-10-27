@@ -10,6 +10,7 @@ from sqlalchemy import (
     Boolean,
     CheckConstraint,
 )
+from sqlalchemy.orm import Session
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker, Session
 from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime
@@ -241,7 +242,8 @@ engine = create_engine(
     pool_timeout=pool_timeout,
 )
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False)
-
+# Add this after SessionLocal creation
+db_session = SessionLocal()
 
 def ensure_database_initialized() -> None:
     Base.metadata.create_all(bind=engine)
