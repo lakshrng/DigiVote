@@ -1,0 +1,74 @@
+.profile-container {
+  background: linear-gradient(to bottom right, #2b3c4f, #1a2633);
+  color: white;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Poppins', sans-serif;
+  padding: 30px;
+}
+
+.profile-card {
+  background: rgba(255, 255, 255, 0.07);
+  padding: 40px 50px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  width: 350px;
+  backdrop-filter: blur(8px);
+}
+
+.avatar {
+  font-size: 4rem;
+  margin-bottom: 15px;
+}
+
+h2 {
+  color: #e2eaf2;
+  margin-bottom: 5px;
+}
+
+.voter-id {
+  color: #a8b4c2;
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+}
+
+.profile-details p {
+  color: #cbd5e1;
+  margin: 10px 0;
+  text-align: left;
+}
+
+.profile-details strong {
+  color: #e5ecf5;
+}
+
+.voted {
+  color: #6fd36f;
+  font-weight: 600;
+}
+
+.not-voted {
+  color: #ff7575;
+  font-weight: 600;
+}
+
+.edit-btn {
+  margin-top: 25px;
+  padding: 10px 28px;
+  border: none;
+  border-radius: 25px;
+  background: linear-gradient(90deg, #30445e, #1e2d42);
+  color: #e3ecf5;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.edit-btn:hover {
+  transform: scale(1.05);
+  background: linear-gradient(90deg, #3b5678, #25374e);
+}

@@ -1,0 +1,84 @@
+/* Base Layout */
+body {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(135deg, #e8ecf4, #d4d8e7, #c2c8e0);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Welcome Page Container */
+.welcome-container {
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}
+
+/* Hero Section */
+.hero-section {
+  background: linear-gradient(145deg, #f0f3fa, #e3e7f2);
+  border-radius: 25px;
+  padding: 60px 100px;
+  box-shadow: 0px 10px 30px rgba(130, 138, 177, 0.25);
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hero-section:hover {
+  transform: translateY(-5px);
+  box-shadow: 0px 12px 35px rgba(120, 130, 170, 0.35);
+}
+
+.hero-title {
+  font-size: 3rem;
+  color: #2b3a67;
+  margin-bottom: 15px;
+  font-weight: 700;
+}
+
+.hero-subtitle {
+  font-size: 1.2rem;
+  color: #5b648b;
+  margin-bottom: 30px;
+}
+
+/* Get Started Button */
+.get-started {
+  padding: 14px 40px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(90deg, #4455aa, #6a7fd1);
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 15px rgba(80, 100, 160, 0.3);
+}
+
+.get-started:hover {
+  background: linear-gradient(90deg, #5a6cc5, #8196e0);
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(80, 100, 160, 0.45);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 40px 30px;
+  }
+
+  .hero-title {
+    font-size: 2.2rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+}

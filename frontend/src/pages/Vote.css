@@ -1,0 +1,113 @@
+.vote-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #101833, #162047);
+  padding: 60px 20px;
+  color: #eaf1ff;
+  text-align: center;
+}
+
+.vote-heading {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 40px;
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+}
+
+.candidates-section {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  align-items: center;
+  transition: all 0.4s ease;
+}
+
+/* Slight fade/blur when vote is done */
+.candidates-section.disabled {
+  opacity: 0.6;
+  filter: blur(1px);
+  pointer-events: none;
+}
+
+.manifesto-card {
+  width: 90%;
+  max-width: 800px;
+  background: linear-gradient(145deg, #1b2751, #233060);
+  border-radius: 16px;
+  padding: 22px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.manifesto-card:hover {
+  transform: translateY(-4px);
+  border-color: #4b6fff;
+}
+
+.cand-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #4b6fff;
+  margin-right: 20px;
+}
+
+.cand-info {
+  flex: 1;
+  text-align: left;
+}
+
+.cand-info h3 {
+  font-size: 1.3rem;
+  margin-bottom: 6px;
+  color: #ffffff;
+}
+
+.party-name {
+  font-size: 0.95rem;
+  color: #b0baf5;
+  margin-bottom: 8px;
+}
+
+.manifesto-text {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: #cfd8ff;
+}
+
+/* Vote button */
+.vote-btn {
+  padding: 10px 22px;
+  background: linear-gradient(90deg, #395bd6, #2b46b6);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.vote-btn:hover:not(:disabled) {
+  background: linear-gradient(90deg, #4b6fff, #395bd6);
+  transform: translateY(-2px);
+}
+
+.vote-btn:disabled {
+  opacity: 0.8;
+  background: linear-gradient(90deg, #2b46b6, #233374);
+  cursor: not-allowed;
+}
+
+/* Thank you message */
+.thankyou {
+  margin-top: 35px;
+  font-size: 1.2rem;
+  color: #a8c6ff;
+  text-shadow: 0 0 8px rgba(118, 168, 255, 0.3);
+}
