@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from datetime import datetime
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -268,3 +269,124 @@ def send_login_otp():
         else:
             return jsonify({"error": "Phone number not available"}), 400
 
+
+@auth_bp.route('/departments', methods=['GET'])
+def get_departments():
+    """Get all active departments with their colleges."""
+    with get_session() as session:
+        departments = session.query(Department).join(College).filter(
+            College.status == COLLEGE_STATUS_ACTIVE
+        ).all()
+        
+        departments_data = []
+        for dept in departments:
+            departments_data.append({
+                "id": dept.id,
+                "name": dept.name,
+                "college_name": dept.college.name,
+                "college_id": dept.college_id
+            })
+        
+        return jsonify({
+            "departments": departments_data
+        }), 200
+
+
+@auth_bp.route('/create-student-profile', methods=['POST'])
+def create_student_profile():
+    """Create or update student profile for authenticated user."""
+    data = request.get_json() or {}
+    year_of_study = (data.get('year_of_study') or '').strip()
+    department_id = data.get('department_id') or ''
+
+    # Validation
+    if not year_of_study or not department_id:
+        return jsonify({"error": "year_of_study and department_id are required"}), 400
+
+    # Validate year of study
+    valid_years = ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year']
+    if year_of_study not in valid_years:
+        return jsonify({"error": "Invalid year of study"}), 400
+
+    with get_session() as session:
+        # Verify department exists
+        department = session.query(Department).filter(Department.id == department_id).first()
+        if not department:
+            return jsonify({"error": "Invalid department_id"}), 400
+
+        # Get user from token (you might need to implement JWT token validation)
+        # For now, we'll assume user_id is passed in the request
+        user_id = data.get('user_id')
+        if not user_id:
+            return jsonify({"error": "user_id is required"}), 400
+
+        # Check if user exists
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        # Check if student profile already exists
+        existing_student = session.query(Student).filter(Student.user_id == user_id).first()
+        if existing_student:
+            # Update existing profile
+            existing_student.year_of_study = year_of_study
+            existing_student.department_id = department_id
+            existing_student.updated_at = datetime.utcnow()
+            
+            return jsonify({
+                "message": "Student profile updated successfully",
+                "student": {
+                    "id": existing_student.id,
+                    "user_id": existing_student.user_id,
+                    "year_of_study": existing_student.year_of_study,
+                    "department_id": existing_student.department_id,
+                    "department_name": department.name,
+                    "college_name": department.college.name
+                }
+            }), 200
+        else:
+            # Create new student profile
+            student = Student(
+                user_id=user_id,
+                year_of_study=year_of_study,
+                department_id=department_id
+            )
+            session.add(student)
+            session.flush()  # Get the student ID
+            
+            return jsonify({
+                "message": "Student profile created successfully",
+                "student": {
+                    "id": student.id,
+                    "user_id": student.user_id,
+                    "year_of_study": student.year_of_study,
+                    "department_id": student.department_id,
+                    "department_name": department.name,
+                    "college_name": department.college.name
+                }
+            }), 201
+
+
+@auth_bp.route('/student-profile/<user_id>', methods=['GET'])
+def get_student_profile(user_id):
+    """Get student profile by user ID."""
+    with get_session() as session:
+        student = session.query(Student).join(Department).join(College).filter(
+            Student.user_id == user_id
+        ).first()
+        
+        if not student:
+            return jsonify({"error": "Student profile not found"}), 404
+        
+        return jsonify({
+            "student": {
+                "id": student.id,
+                "user_id": student.user_id,
+                "year_of_study": student.year_of_study,
+                "department_id": student.department_id,
+                "department_name": student.department.name,
+                "college_name": student.department.college.name,
+                "created_at": student.created_at.isoformat(),
+                "updated_at": student.updated_at.isoformat()
+            }
+        }), 200

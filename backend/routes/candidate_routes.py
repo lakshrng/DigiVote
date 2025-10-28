@@ -65,6 +65,7 @@ def apply_for_position():
         )
         
         session.add(candidate)
+        session.flush()  # Flush to get the ID without committing
         
         return jsonify({
             "message": "Application submitted successfully. Awaiting admin approval.",

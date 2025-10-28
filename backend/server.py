@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from database import create_all_tables
 from routes.auth_routes import auth_bp
 from routes.candidate_routes import candidate_bp
+from routes.voting_routes import voting_bp
 
 
 def create_app() -> Flask:
@@ -28,6 +29,7 @@ def create_app() -> Flask:
     # Register blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(candidate_bp)
+    app.register_blueprint(voting_bp)
 
     return app
 
