@@ -1,0 +1,111 @@
+.results-container {
+  min-height: 100vh;
+  padding: 60px 20px;
+  background: linear-gradient(180deg, #1e2a47, #24314d);
+  color: #eaf1ff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.results-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 40px;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+}
+
+.results-list {
+  width: 90%;
+  max-width: 750px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.result-item {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 18px 22px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(8px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.result-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+}
+
+.candidate-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.candidate-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.candidate-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+}
+
+.candidate-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.candidate-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.vote-count {
+  font-size: 0.95rem;
+  color: #cdd7f5;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00bcd4, #4caf50);
+  border-radius: 10px;
+  transition: width 0.5s ease;
+}
+
+.manifesto {
+  font-size: 0.95rem;
+  color: #d2dbff;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 10px 14px;
+  border-radius: 8px;
+  line-height: 1.5;
+}
+
+.result-item.winner {
+  border: 1px solid #ffd700;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+}
+
+.result-item.winner .candidate-name {
+  color: #ffd700;
+}
