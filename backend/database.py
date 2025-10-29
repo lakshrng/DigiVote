@@ -68,7 +68,6 @@ class OTP(Base):
     # Relationships
     user: Mapped["User"] = relationship(back_populates="otps")
     
-    # Check constraint for valid OTP types
     __table_args__ = (
         CheckConstraint(
             "otp_type IN ('email', 'phone')",
@@ -85,10 +84,8 @@ class College(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default=COLLEGE_STATUS_ACTIVE)
 
-    # Relationships
     departments: Mapped[list["Department"]] = relationship(back_populates="college", cascade="all, delete-orphan")
     
-    # Check constraint for valid status values
     __table_args__ = (
         CheckConstraint(
             f"status IN ('{COLLEGE_STATUS_ACTIVE}', '{COLLEGE_STATUS_INACTIVE}')",
@@ -105,7 +102,6 @@ class Department(Base):
     college_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("colleges.id", ondelete="CASCADE"), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
 
-    # Relationships
     college: Mapped["College"] = relationship(back_populates="departments")
     students: Mapped[list["Student"]] = relationship(back_populates="department", cascade="all, delete-orphan")
 
@@ -121,7 +117,6 @@ class Student(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), nullable=False, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # Relationships
     user: Mapped["User"] = relationship(back_populates="student")
     department: Mapped["Department"] = relationship(back_populates="students")
     candidates: Mapped[list["Candidate"]] = relationship(back_populates="student", cascade="all, delete-orphan")
@@ -141,12 +136,10 @@ class Election(Base):
     status: Mapped[str] = mapped_column(String(20), nullable=False, default=ELECTION_STATUS_UPCOMING)
     is_anonymous_tally: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
-    # Relationships
     positions: Mapped[list["Position"]] = relationship(back_populates="election", cascade="all, delete-orphan")
     candidates: Mapped[list["Candidate"]] = relationship(back_populates="election", cascade="all, delete-orphan")
     ballots: Mapped[list["Ballot"]] = relationship(back_populates="election", cascade="all, delete-orphan")
     
-    # Check constraint for valid status values
     __table_args__ = (
         CheckConstraint(
             f"status IN ('{ELECTION_STATUS_UPCOMING}', '{ELECTION_STATUS_ACTIVE}', '{ELECTION_STATUS_COMPLETED}', '{ELECTION_STATUS_ARCHIVED}')",
@@ -163,7 +156,6 @@ class Position(Base):
     election_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("elections.id", ondelete="CASCADE"), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
 
-    # Relationships
     election: Mapped["Election"] = relationship(back_populates="positions")
     candidates: Mapped[list["Candidate"]] = relationship(back_populates="position", cascade="all, delete-orphan")
     vote_selections: Mapped[list["VoteSelection"]] = relationship(back_populates="position", cascade="all, delete-orphan")
@@ -181,57 +173,53 @@ class Candidate(Base):
     photo_url: Mapped[str] = mapped_column(String(500), nullable=True)
     is_approved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
-    # Relationships
     student: Mapped["Student"] = relationship(back_populates="candidates")
     position: Mapped["Position"] = relationship(back_populates="candidates")
     election: Mapped["Election"] = relationship(back_populates="candidates")
     vote_selections: Mapped[list["VoteSelection"]] = relationship(back_populates="candidate", cascade="all, delete-orphan")
 
-    # Combined Index: (election_id, student_id) (Unique Index) - Prevents a candidate from applying for more than one position in one election
     __table_args__ = (
         UniqueConstraint("election_id", "student_id", name="uq_candidate_per_student_per_election"),
     )
 
 
 class Ballot(Base):
-    """Tracks who has voted in which election. The only place the voter's ID is directly linked to the act of voting."""
+    """Tracks who has voted in which election."""
     __tablename__ = "ballots"
     
     id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
     election_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("elections.id", ondelete="CASCADE"), nullable=False)
     student_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
     submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), nullable=False, default=datetime.utcnow)
-    ip_address: Mapped[str] = mapped_column(String(45), nullable=True)  # IPv6 addresses can be up to 45 characters
+    ip_address: Mapped[str] = mapped_column(String(45), nullable=True)
 
-    # Relationships
     election: Mapped["Election"] = relationship(back_populates="ballots")
     student: Mapped["Student"] = relationship(back_populates="ballots")
     vote_selections: Mapped[list["VoteSelection"]] = relationship(back_populates="ballot", cascade="all, delete-orphan")
 
-    # Combined Index: (election_id, student_id) (Unique Index) - Prevents a user from voting more than once per election
     __table_args__ = (
         UniqueConstraint("election_id", "student_id", name="uq_ballot_per_student_per_election"),
     )
 
 
 class VoteSelection(Base):
-    """Holds the actual votes, maintaining voter anonymity by only linking to ballot_id."""
+    """Holds the actual votes, maintaining voter anonymity."""
     __tablename__ = "vote_selections"
     
     id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
     ballot_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("ballots.id", ondelete="CASCADE"), nullable=False)
     position_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("positions.id", ondelete="CASCADE"), nullable=False)
-    # FIX: Change data type from String(36) to UUID
-    candidate_id: Mapped[str | None] = mapped_column(UUID(as_uuid=False), ForeignKey("candidates.id", ondelete="CASCADE"), nullable=True)  # Null if 'None of the Above' option is used
+    candidate_id: Mapped[str | None] = mapped_column(UUID(as_uuid=False), ForeignKey("candidates.id", ondelete="CASCADE"), nullable=True)
 
-    # Relationships
     ballot: Mapped["Ballot"] = relationship(back_populates="vote_selections")
     position: Mapped["Position"] = relationship(back_populates="vote_selections")
     candidate: Mapped["Candidate"] = relationship(back_populates="vote_selections")
 
+
 pool_size = int(os.getenv("DB_POOL_SIZE", "5"))
 max_overflow = int(os.getenv("DB_MAX_OVERFLOW", "10"))
 pool_timeout = int(os.getenv("DB_POOL_TIMEOUT", "30"))
+
 engine = create_engine(
     DATABASE_URL,
     echo=os.getenv("SQLALCHEMY_ECHO", "false").lower() == "true",
@@ -240,6 +228,7 @@ engine = create_engine(
     max_overflow=max_overflow,
     pool_timeout=pool_timeout,
 )
+
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False)
 
 

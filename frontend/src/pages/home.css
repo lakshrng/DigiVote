@@ -1,0 +1,54 @@
+.home {
+  background: linear-gradient(135deg, #e0e6eb, #74b9ff);
+  min-height: 100vh;
+  padding: 40px;
+  color: #2d3436;
+  font-family: 'Poppins', sans-serif;
+  text-align: center;
+}
+
+.home h1 {
+  margin-bottom: 30px;
+  font-size: 2.2rem;
+  color: #2d3436;
+}
+
+.candidate-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  justify-items: center;
+}
+
+.candidate-card {
+  background: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  width: 100%;
+  max-width: 300px;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.candidate-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+}
+
+.emoji {
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+.party {
+  color: #0984e3;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.manifesto {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #555;
+}

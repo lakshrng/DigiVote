@@ -1,3 +1,18 @@
-node_modules/
-venv/
+# Python cache and venv
 __pycache__/
+*.pyc
+venv/
+
+# Node modules
+node_modules/
+frontend/node_modules/
+
+# Build files
+dist/
+build/
+.vite/
+
+# Environment and config files
+.env
+.DS_Store
+Thumbs.db
