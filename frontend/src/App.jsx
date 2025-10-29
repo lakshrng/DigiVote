@@ -11,9 +11,9 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Vote from "./pages/Vote";
 import VoterPage from "./pages/VoterPage";
-import Welcome from "./pages/welcome";
+import Welcome from "./pages/Welcome"; // make sure 'Welcome.jsx' filename matches case
 
-function App() {
+export default function App() {
   return (
     <Router>
       {/* Navbar */}
@@ -86,5 +86,3 @@ function App() {
     </Router>
   );
 }
-
-export default App;
