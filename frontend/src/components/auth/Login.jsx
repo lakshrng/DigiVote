@@ -25,49 +25,32 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
   e.preventDefault();
+  console.log("Form submitted");
   setError('');
-
-  if (!formData.email || !formData.password) {
-    setError('Please fill in all fields');
-    return;
-  }
-
-  if (!isValidEmail(formData.email)) {
-    setError('Please enter a valid email address');
-    return;
-  }
-
   setLoading(true);
 
   try {
     const result = await login(formData);
-    console.log('✅ Login successful!');
+    console.log("Login result:", result);
 
     if (!result.success) {
-      // ✅ Keep the error visible
       setError(result.error || 'Invalid email or password');
-      setLoading(false);
+      console.log("Login failed");
       return;
     }
 
-    // ✅ Only navigate if successful
-    const { user, student } = result.data;
-
-    if (!user.is_verified) {
-      navigate('/verify-email');
-    } else if (student) {
-      navigate('/dashboard');
-    } else {
-      navigate('/create-profile');
-    }
+    console.log('Login successful, trying to navigate...');
+    navigate('/home');
+    console.log('Navigate called');
 
   } catch (err) {
-    console.error('Login error:', err);
+    console.error('Login handleSubmit error:', err);
     setError('An unexpected error occurred. Please try again.');
   } finally {
     setLoading(false);
   }
 };
+
 
 
   const isValidEmail = (email) => {

@@ -5,7 +5,8 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import OTPVerification from './components/auth/OTPVerification';
-import Dashboard from './components/Dashboard';
+import HomePage from './components/auth/HomePage';
+import CandidateVoting from "./components/auth/CandidateVoting";
 import './index.css';
 
 function App() {
@@ -18,16 +19,8 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/verify-email" element={<OTPVerification />} />
-
-            {/* Protected Route */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute requireVerification={true}>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/home" element={<HomePage />} />
+            <Route path="/voting" element={<CandidateVoting />} />
 
             {/* Default redirect */}
             <Route path="/" element={<Navigate to="/login" replace />} />
