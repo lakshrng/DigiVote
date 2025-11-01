@@ -1,21 +1,203 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from datetime import datetime
+import os
+import uuid
+from werkzeug.utils import secure_filename
 from database import get_session, Candidate, Student, User, Election, Position, Department
 from sqlalchemy.orm import joinedload
 from sqlalchemy import and_, or_
 
 candidate_bp = Blueprint('candidate', __name__, url_prefix='/api/candidates')
 
+
+def allowed_file(filename):
+    """Check if file extension is allowed."""
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def save_uploaded_file(file):
+    """Save uploaded file and return the URL path."""
+    if file and allowed_file(file.filename):
+        # Generate unique filename
+        filename = secure_filename(file.filename)
+        file_ext = filename.rsplit('.', 1)[1].lower()
+        unique_filename = f"{uuid.uuid4()}.{file_ext}"
+        
+        # Get upload folder from app config
+        upload_folder = current_app.config.get('UPLOAD_FOLDER')
+        if not upload_folder:
+            upload_folder = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'uploads', 'candidates')
+            os.makedirs(upload_folder, exist_ok=True)
+        
+        # Save file
+        file_path = os.path.join(upload_folder, unique_filename)
+        file.save(file_path)
+        
+        # Return URL path (relative to the static route)
+        return f"/uploads/candidates/{unique_filename}"
+    return None
+
+# ============================================================================
+# ELECTION ENDPOINTS (for voting interface)
+# ============================================================================
+
+@candidate_bp.route("/voting/elections", methods=["GET"])
+def get_elections_for_voting():
+    """Get all active elections for voting."""
+    with get_session() as session:
+        elections = session.query(Election).filter(
+            Election.status.in_(["UPCOMING", "ACTIVE"])
+        ).all()
+        
+        elections_data = [
+            {
+                "id": election.id,
+                "title": election.title,
+                "election_year": election.election_year,
+                "status": election.status,
+                "start_time": election.start_time.isoformat() if election.start_time else None,
+                "end_time": election.end_time.isoformat() if election.end_time else None,
+            }
+            for election in elections
+        ]
+        
+        return jsonify({
+            "elections": elections_data,
+            "total": len(elections_data)
+        })
+
+
+@candidate_bp.route("/apply/elections", methods=["GET"])
+def get_elections_for_application():
+    """Get upcoming elections with their positions for candidate application."""
+    with get_session() as session:
+        elections = session.query(Election).filter(
+            Election.status == "UPCOMING"
+        ).options(
+            joinedload(Election.positions)
+        ).all()
+        
+        elections_data = []
+        for election in elections:
+            positions_data = [
+                {
+                    "id": position.id,
+                    "name": position.name,
+                    "description": position.description if hasattr(position, 'description') else None
+                }
+                for position in election.positions
+            ]
+            
+            elections_data.append({
+                "id": election.id,
+                "title": election.title,
+                "election_year": election.election_year,
+                "status": election.status,
+                "positions": positions_data
+            })
+        
+        return jsonify({
+            "elections": elections_data,
+            "total": len(elections_data)
+        })
+
+
+@candidate_bp.route("/voting/elections/<election_id>/candidates", methods=["GET"])
+def get_approved_candidates_for_voting(election_id):
+    """Get approved candidates grouped by position for a specific election (for voting)."""
+    with get_session() as session:
+        # Check if election exists
+        election = session.query(Election).filter(Election.id == election_id).first()
+        if not election:
+            return jsonify({"error": "Election not found"}), 404
+        
+        # Get only approved candidates for this election
+        candidates = session.query(Candidate).options(
+            joinedload(Candidate.student).joinedload(Student.user),
+            joinedload(Candidate.position)
+        ).filter(
+            Candidate.election_id == election_id,
+            Candidate.is_approved == True
+        ).all()
+        
+        # Group candidates by position
+        candidates_by_position = {}
+        for candidate in candidates:
+            position_name = candidate.position.name
+            if position_name not in candidates_by_position:
+                candidates_by_position[position_name] = []
+            
+            candidates_by_position[position_name].append({
+                "id": candidate.id,
+                "name": f"{candidate.student.user.first_name} {candidate.student.user.last_name}",
+                "platform_statement": candidate.platform_statement,
+                "photo_url": candidate.photo_url,
+                "position_id": candidate.position.id,
+                "position_name": position_name,
+            })
+        
+        return jsonify({
+            "election": {
+                "id": election.id,
+                "title": election.title,
+                "election_year": election.election_year,
+                "status": election.status
+            },
+            "candidates_by_position": candidates_by_position,
+            "total_candidates": len(candidates)
+        })
+
+
+# ============================================================================
+# CANDIDATE ENDPOINTS
+# ============================================================================
+
+@candidate_bp.get("/all-candidates")
+def get_all_candidates():
+    with get_session() as session:
+        # Join Candidate → Student → User to get candidate name
+        # Only return approved candidates for public viewing
+        candidates = session.query(Candidate).options(
+            joinedload(Candidate.student).joinedload(Student.user),
+            joinedload(Candidate.position),
+            joinedload(Candidate.election)
+        ).filter(Candidate.is_approved == True).all()
+        result = [
+            {
+                "id": candidate.id,
+                "name": f"{candidate.student.user.first_name} {candidate.student.user.last_name}",
+                "position": candidate.position.name,
+                "election": candidate.election.title
+            }
+            for candidate in candidates
+        ]
+        return jsonify(result)
+
 @candidate_bp.route('/apply', methods=['POST'])
 def apply_for_position():
     """Apply for a position in an election."""
-    data = request.get_json() or {}
-    
-    student_id = data.get('student_id')
-    position_id = data.get('position_id')
-    election_id = data.get('election_id')
-    platform_statement = data.get('platform_statement', '').strip()
-    photo_url = data.get('photo_url', '').strip()
+    # Check if request contains form data (file upload) or JSON
+    if request.content_type and 'multipart/form-data' in request.content_type:
+        # Handle file upload
+        student_id = request.form.get('student_id')
+        position_id = request.form.get('position_id')
+        election_id = request.form.get('election_id')
+        platform_statement = request.form.get('platform_statement', '').strip()
+        
+        # Handle file upload
+        photo_file = request.files.get('photo')
+        photo_url = None
+        if photo_file:
+            photo_url = save_uploaded_file(photo_file)
+    else:
+        # Handle JSON request (for backward compatibility)
+        data = request.get_json() or {}
+        student_id = data.get('student_id')
+        position_id = data.get('position_id')
+        election_id = data.get('election_id')
+        platform_statement = data.get('platform_statement', '').strip()
+        photo_url = data.get('photo_url', '').strip()
     
     # Validation
     if not all([student_id, position_id, election_id]):
@@ -117,18 +299,21 @@ def get_my_applications(student_id):
 
 @candidate_bp.route('/election/<election_id>', methods=['GET'])
 def get_candidates_by_election(election_id):
-    """Get all candidates for a specific election."""
+    """Get all approved candidates for a specific election."""
     with get_session() as session:
         # Check if election exists
         election = session.query(Election).filter(Election.id == election_id).first()
         if not election:
             return jsonify({"error": "Election not found"}), 404
         
-        # Get all candidates for this election
+        # Get only approved candidates for this election
         candidates = session.query(Candidate).options(
             joinedload(Candidate.student).joinedload(Student.user),
             joinedload(Candidate.position)
-        ).filter(Candidate.election_id == election_id).all()
+        ).filter(
+            Candidate.election_id == election_id,
+            Candidate.is_approved == True
+        ).all()
         
         candidates_data = []
         for candidate in candidates:
@@ -170,7 +355,7 @@ def get_candidates_by_election(election_id):
 
 @candidate_bp.route('/position/<position_id>', methods=['GET'])
 def get_candidates_by_position(position_id):
-    """Get all candidates for a specific position."""
+    """Get all approved candidates for a specific position."""
     with get_session() as session:
         # Check if position exists
         position = session.query(Position).options(
@@ -179,11 +364,14 @@ def get_candidates_by_position(position_id):
         if not position:
             return jsonify({"error": "Position not found"}), 404
         
-        # Get all candidates for this position
+        # Get only approved candidates for this position
         candidates = session.query(Candidate).options(
             joinedload(Candidate.student).joinedload(Student.user),
             joinedload(Candidate.student).joinedload(Student.department)
-        ).filter(Candidate.position_id == position_id).all()
+        ).filter(
+            Candidate.position_id == position_id,
+            Candidate.is_approved == True
+        ).all()
         
         candidates_data = []
         for candidate in candidates:
@@ -270,11 +458,6 @@ def get_candidate_details(candidate_id):
 @candidate_bp.route('/<candidate_id>', methods=['PUT'])
 def update_candidate_application(candidate_id):
     """Update a candidate application (only if not approved yet)."""
-    data = request.get_json() or {}
-    
-    platform_statement = data.get('platform_statement', '').strip()
-    photo_url = data.get('photo_url', '').strip()
-    
     with get_session() as session:
         candidate = session.query(Candidate).filter(Candidate.id == candidate_id).first()
         if not candidate:
@@ -284,11 +467,43 @@ def update_candidate_application(candidate_id):
         if candidate.is_approved:
             return jsonify({"error": "Cannot modify approved applications"}), 400
         
-        # Update fields
-        if platform_statement:
-            candidate.platform_statement = platform_statement
-        if photo_url:
-            candidate.photo_url = photo_url
+        # Check if request contains form data (file upload) or JSON
+        if request.content_type and 'multipart/form-data' in request.content_type:
+            # Handle file upload
+            platform_statement = request.form.get('platform_statement', '').strip()
+            photo_file = request.files.get('photo')
+            
+            if platform_statement:
+                candidate.platform_statement = platform_statement
+            
+            if photo_file:
+                # Delete old photo if exists
+                if candidate.photo_url:
+                    old_filename = candidate.photo_url.split('/')[-1]
+                    upload_folder = current_app.config.get('UPLOAD_FOLDER')
+                    if not upload_folder:
+                        upload_folder = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'uploads', 'candidates')
+                    old_file_path = os.path.join(upload_folder, old_filename)
+                    if os.path.exists(old_file_path):
+                        try:
+                            os.remove(old_file_path)
+                        except:
+                            pass
+                
+                # Save new photo
+                new_photo_url = save_uploaded_file(photo_file)
+                if new_photo_url:
+                    candidate.photo_url = new_photo_url
+        else:
+            # Handle JSON request (for backward compatibility)
+            data = request.get_json() or {}
+            platform_statement = data.get('platform_statement', '').strip()
+            photo_url = data.get('photo_url', '').strip()
+            
+            if platform_statement:
+                candidate.platform_statement = platform_statement
+            if photo_url:
+                candidate.photo_url = photo_url
         
         return jsonify({
             "message": "Application updated successfully",

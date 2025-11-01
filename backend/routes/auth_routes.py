@@ -1,9 +1,19 @@
 from flask import Blueprint, request, jsonify
 from datetime import datetime
+import uuid
+from sqlalchemy.orm import joinedload
+from sqlalchemy import cast, String
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from database import get_session, User, Student, College, Department
+from database import (
+    get_session, 
+    User, 
+    Student, 
+    College, 
+    Department,
+    COLLEGE_STATUS_ACTIVE
+)
 from utils import (
     validate_email_domain, validate_phone_number, format_phone_number,
     create_otp, verify_otp, send_email_otp, send_sms_otp, get_user_by_email_or_phone
@@ -23,9 +33,9 @@ def register():
 
     # Student-specific fields
     year_of_study = (payload.get('year_of_study') or '').strip()
-    department_id = payload.get('department_id') or ''
+    department_id = payload.get('department_id')
 
-    # Validation
+    # Validation - basic required fields
     if not first_name or not last_name or not email or not password:
         return jsonify({"error": "first_name, last_name, email, and password are required"}), 400
 
@@ -40,8 +50,19 @@ def register():
         phone = format_phone_number(phone)
 
     # Validate student-specific fields BEFORE creating user
-    if not year_of_study or not department_id:
-        return jsonify({"error": "year_of_study and department_id required for student"}), 400
+    if not year_of_study:
+        return jsonify({"error": "year_of_study is required"}), 400
+    
+    if not department_id:
+        return jsonify({"error": "department_id is required"}), 400
+
+    # Validate department_id is a valid UUID format
+    try:
+        # Ensure it's a string and validate UUID format
+        department_id = str(department_id).strip()
+        uuid.UUID(department_id)
+    except (ValueError, TypeError, AttributeError):
+        return jsonify({"error": "department_id must be a valid UUID format"}), 400
 
     password_hash = generate_password_hash(password)
 
@@ -58,7 +79,7 @@ def register():
         # Verify department exists BEFORE creating user
         department = session.query(Department).filter(Department.id == department_id).first()
         if not department:
-            return jsonify({"error": "invalid department_id"}), 400
+            return jsonify({"error": f"Department with id {department_id} not found"}), 400
 
     # Now create the user in a separate session
     with get_session() as session:
@@ -120,6 +141,7 @@ def login():
         return jsonify({"error": "email/phone and password are required"}), 400
 
     with get_session() as session:
+        # Get user from utility function (outside this session)
         user = get_user_by_email_or_phone(identifier)
         if not user:
             return jsonify({"error": "Invalid credentials"}), 401
@@ -130,6 +152,14 @@ def login():
         if not user.is_verified:
             return jsonify({"error": "Account not verified. Please verify your email/phone first."}), 403
 
+        # Query user again in this session to get student relationship
+        user_with_student = session.query(User).options(joinedload(User.student)).filter(User.id == user.id).first()
+        
+        # Get student_id if user has a student profile
+        student_id = None
+        if user_with_student and user_with_student.student:
+            student_id = user_with_student.student.id
+
         return jsonify({
             "message": "Login successful",
             "user": {
@@ -139,7 +169,8 @@ def login():
                 "email": user.email,
                 "phone": user.phone,
                 "is_admin": user.is_admin,
-                "is_verified": user.is_verified
+                "is_verified": user.is_verified,
+                "student_id": student_id
             }
         }), 200
 
@@ -155,7 +186,7 @@ def verify_otp_route():
         return jsonify({"error": "user_id, otp_code, and otp_type (email/phone) are required"}), 400
 
     with get_session() as session:
-        user = session.query(User).filter(User.id == user_id).first()
+        user = session.query(User).options(joinedload(User.student)).filter(User.id == user_id).first()
         if not user:
             return jsonify({"error": "User not found"}), 404
 
@@ -166,6 +197,11 @@ def verify_otp_route():
             elif otp_type == 'phone' and user.phone:
                 user.is_verified = True
 
+            # Get student_id if user has a student profile
+            student_id = None
+            if user.student:
+                student_id = user.student.id
+
             return jsonify({
                 "message": f"{otp_type.capitalize()} verification successful",
                 "user": {
@@ -175,7 +211,8 @@ def verify_otp_route():
                     "email": user.email,
                     "phone": user.phone,
                     "is_admin": user.is_admin,
-                    "is_verified": user.is_verified
+                    "is_verified": user.is_verified,
+                    "student_id": student_id
                 }
             }), 200
         else:
@@ -217,7 +254,7 @@ def otp_login():
     if not identifier or not otp_code:
         return jsonify({"error": "email/phone and otp_code are required"}), 400
 
-    for session in get_session():
+    with get_session() as session:
         user = get_user_by_email_or_phone(identifier)
         if not user:
             return jsonify({"error": "User not found"}), 404
@@ -226,6 +263,11 @@ def otp_login():
         otp_type = 'email' if '@' in identifier else 'phone'
         
         if verify_otp(user.id, otp_code, otp_type):
+            # Get student_id if user has a student profile
+            student_id = None
+            if user.student:
+                student_id = user.student.id
+
             return jsonify({
                 "message": "OTP login successful",
                 "user": {
@@ -235,7 +277,8 @@ def otp_login():
                     "email": user.email,
                     "phone": user.phone,
                     "is_admin": user.is_admin,
-                    "is_verified": user.is_verified
+                    "is_verified": user.is_verified,
+                    "student_id": student_id
                 }
             }), 200
         else:
@@ -272,23 +315,61 @@ def send_login_otp():
 
 @auth_bp.route('/departments', methods=['GET'])
 def get_departments():
-    """Get all active departments with their colleges."""
+    """Get all departments with their colleges."""
     with get_session() as session:
-        departments = session.query(Department).join(College).filter(
-            College.status == COLLEGE_STATUS_ACTIVE
+        # Get all departments with their colleges
+        # Load departments and eagerly load college relationship
+        departments = session.query(Department).options(
+            joinedload(Department.college)
         ).all()
         
+        # Filter in Python to avoid type casting issues
+        # Only include departments from active colleges
         departments_data = []
         for dept in departments:
-            departments_data.append({
-                "id": dept.id,
-                "name": dept.name,
-                "college_name": dept.college.name,
-                "college_id": dept.college_id
-            })
+            # Check if college exists and is active
+            if dept.college and dept.college.status == COLLEGE_STATUS_ACTIVE:
+                departments_data.append({
+                    "id": dept.id,
+                    "name": dept.name,
+                    "college_name": dept.college.name,
+                    "college_id": dept.college_id
+                })
         
         return jsonify({
-            "departments": departments_data
+            "departments": departments_data,
+            "total": len(departments_data)
+        }), 200
+
+
+@auth_bp.route('/departments/<department_id>', methods=['GET'])
+def get_department_by_id(department_id):
+    """Get a specific department by its UUID."""
+    # Validate UUID format
+    try:
+        uuid.UUID(department_id)
+    except (ValueError, TypeError):
+        return jsonify({"error": "Invalid department_id format (must be UUID)"}), 400
+    
+    with get_session() as session:
+        department = session.query(Department).options(
+            joinedload(Department.college)
+        ).filter(Department.id == department_id).first()
+        
+        if not department:
+            return jsonify({"error": "Department not found"}), 404
+        
+        return jsonify({
+            "department": {
+                "id": department.id,
+                "name": department.name,
+                "college": {
+                    "id": department.college.id,
+                    "name": department.college.name,
+                    "status": department.college.status
+                },
+                "college_id": department.college_id
+            }
         }), 200
 
 
@@ -310,6 +391,14 @@ def create_student_profile():
 
     with get_session() as session:
         # Verify department exists
+        # Validate department_id is a valid UUID format
+        if department_id:
+            try:
+                # Validate it's a valid UUID string
+                uuid.UUID(department_id)
+            except (ValueError, TypeError):
+                return jsonify({"error": "Invalid department_id format (must be UUID)"}), 400
+        
         department = session.query(Department).filter(Department.id == department_id).first()
         if not department:
             return jsonify({"error": "Invalid department_id"}), 400

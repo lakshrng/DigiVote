@@ -190,14 +190,15 @@ def send_sms_otp(phone: str, otp_code: str) -> bool:
 
 def get_user_by_email_or_phone(identifier: str) -> Optional[User]:
     """Get user by email or phone number."""
+    from sqlalchemy.orm import joinedload
     with get_session() as session:
         # Try to find by email first
-        user = session.query(User).filter(User.email == identifier).first()
+        user = session.query(User).options(joinedload(User.student)).filter(User.email == identifier).first()
         if user:
             return user
         
         # Try to find by phone
-        user = session.query(User).filter(User.phone == identifier).first()
+        user = session.query(User).options(joinedload(User.student)).filter(User.phone == identifier).first()
         if user:
             return user
         

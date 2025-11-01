@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
 
@@ -19,6 +19,20 @@ def create_app() -> Flask:
         app,
         resources={r"/api/*": {"origins": [origin.strip() for origin in allowed_origins]}},
     )
+
+    # Create uploads directory if it doesn't exist
+    uploads_dir = os.path.join(os.path.dirname(__file__), "uploads", "candidates")
+    os.makedirs(uploads_dir, exist_ok=True)
+
+    # Configure upload settings
+    app.config['UPLOAD_FOLDER'] = uploads_dir
+    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+    app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+
+    # Serve uploaded files
+    @app.route('/uploads/candidates/<filename>')
+    def uploaded_file(filename):
+        return send_from_directory(uploads_dir, filename)
 
     create_all_tables()
 

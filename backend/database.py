@@ -1,5 +1,6 @@
 import os
 from typing import Generator
+from dotenv import load_dotenv
 from sqlalchemy import (
     create_engine,
     String,
@@ -16,8 +17,10 @@ from datetime import datetime
 import uuid
 from contextlib import contextmanager
 
+# Load environment variables
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"), override=False)
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+psycopg://postgres:siddanth@localhost:5432/digi-voter")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+psycopg://postgres:1234@localhost:5432/digi-voter")
 
 class Base(DeclarativeBase):
     pass
@@ -103,7 +106,7 @@ class Department(Base):
     """Stores department information within colleges."""
     __tablename__ = "departments"
 
-    id: Mapped[str] = mapped_column(String(10), primary_key=True)  # e.g., "CSE", "ECE"
+    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
     college_id: Mapped[str] = mapped_column(
         String(50),  # 👈 changed from UUID to String
         ForeignKey("colleges.id", ondelete="CASCADE"),
@@ -125,7 +128,7 @@ class Student(Base):
     id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     year_of_study: Mapped[str] = mapped_column(String(50), nullable=False)
-    department_id: Mapped[str] = mapped_column(String(10), ForeignKey("departments.id", ondelete="CASCADE"), nullable=False)
+    department_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("departments.id", ondelete="CASCADE"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), nullable=False, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     candidates: Mapped[list["Candidate"]] = relationship(back_populates="student")
