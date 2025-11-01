@@ -165,6 +165,18 @@ export const votingAPI = {
     const response = await api.get(`/voting/results/${electionId}`);
     return response.data;
   },
+
+  // Get position results
+  getPositionResults: async (electionId, positionId) => {
+    const response = await api.get(`/voting/results/${electionId}/position/${positionId}`);
+    return response.data;
+  },
+
+  // Get elections for results viewing
+  getElectionsForResults: async () => {
+    const response = await api.get('/voting/results/elections');
+    return response.data;
+  },
 };
 
 export default api;

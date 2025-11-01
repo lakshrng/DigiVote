@@ -385,6 +385,7 @@ const photoUploadStyle = {
 };
 
 const fileInputStyle = {
+  backgroud: "#454444ff" ,
   display: 'none',
 };
 
@@ -392,7 +393,7 @@ const fileInputLabelStyle = {
   padding: '12px 24px',
   borderRadius: '8px',
   border: '2px dashed #d1d5db',
-  background: '#f9fafb',
+  backgroud: "#454444ff" ,
   color: '#6b7280',
   fontSize: '14px',
   fontWeight: '500',
