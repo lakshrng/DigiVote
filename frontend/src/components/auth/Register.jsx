@@ -203,16 +203,14 @@ const Register = () => {
               value={formData.department_id}
               onChange={handleChange}
               required
-              disabled={loading}
+              disabled={loading || departments.length === 0}
             >
-              <option value="">Select Department</option>
-              <option value="CSE">Computer Science (CSE)</option>
-              <option value="ECE">Electronics & Communication (ECE)</option>
-              <option value="EEE">Electrical (EEE)</option>
-              <option value="MECH">Mechanical (MECH)</option>
-              <option value="CIVIL">Civil (CIVIL)</option>
-              <option value="CHEM">Chemical (CHEM)</option>
-              <option value="BIO">Biotechnology (BIO)</option>
+              <option value="">{departments.length === 0 ? 'Loading departments...' : 'Select Department'}</option>
+              {departments.map((dept) => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.name}
+                </option>
+              ))}
             </select>
           </div>
 
