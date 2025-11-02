@@ -83,8 +83,9 @@ body {
   box-shadow: var(--shadow-lg);
   padding: 2rem;
   width: 100%;
-  max-width: 400px;
+  max-width: 500px;
   border: 1px solid var(--border-light);
+  overflow: hidden;
 }
 
 .auth-header {
@@ -114,7 +115,7 @@ body {
 
 .form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 1rem;
 }
 
@@ -122,6 +123,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  min-width: 0;
 }
 
 .form-group label {
@@ -139,6 +141,8 @@ body {
   background: var(--background);
   color: var(--text-primary);
   transition: all 0.2s ease;
+  width: 100%;
+  min-width: 0;
 }
 
 .form-group select {
