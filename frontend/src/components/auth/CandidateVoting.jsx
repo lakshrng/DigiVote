@@ -23,7 +23,6 @@ const CandidateVoting = () => {
         try {
           const user = JSON.parse(userData);
           
-          // If student_id is already in user object, use it
           if (user.student_id) {
             setStudentId(user.student_id);
             return;
@@ -228,7 +227,16 @@ const CandidateVoting = () => {
                             e.currentTarget.style.boxShadow = 'none';
                           }}
                         >
-                          <div style={electionIconStyle}>🎯</div>
+                          <div style={electionIconStyle}>
+                            
+                            <span style={{ verticalAlign: 'middle' }}>
+                              <svg width={32} height={32} viewBox="0 0 24 24" fill="currentColor">
+                                <circle cx="12" cy="12" r="10" stroke="#ef4444" strokeWidth="2" fill="none"/>
+                                <circle cx="12" cy="12" r="6" stroke="#ef4444" strokeWidth="2" fill="none"/>
+                                <circle cx="12" cy="12" r="2" fill="#ef4444"/>
+                              </svg>
+                            </span>
+                          </div>
                           <h3 style={electionTitleStyle}>{election.title}</h3>
                           {election.election_year && (
                             <p style={electionYearStyle}>{election.election_year}</p>
