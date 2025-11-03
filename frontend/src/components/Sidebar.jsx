@@ -2,6 +2,9 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
+// Import icons from react-icons
+import { FaHome, FaPoll, FaUserEdit, FaVoteYea, FaBullhorn, FaSignOutAlt } from 'react-icons/fa';
+
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -12,12 +15,13 @@ const Sidebar = () => {
     navigate('/login');
   };
 
+  // Replace emoji icons with react-icons components
   const menuItems = [
-    { id: 'home', label: 'Home', icon: '🏠', path: '/home' },
-    { id: 'apply', label: 'Candidate Apply', icon: '📝', path: '/apply' },
-    { id: 'results', label: 'Check Results', icon: '📊', path: '/results' },
-    { id: 'voting', label: 'Candidate Voting', icon: '🗳️', path: '/voting' },
-    { id: 'announcements', label: 'Election Announcements', icon: '📢', path: '/announcements' },
+    { id: 'home', label: 'Home', icon: <FaHome />, path: '/home' },
+    { id: 'apply', label: 'Candidate Apply', icon: <FaUserEdit />, path: '/apply' },
+    { id: 'results', label: 'Check Results', icon: <FaPoll />, path: '/results' },
+    { id: 'voting', label: 'Candidate Voting', icon: <FaVoteYea />, path: '/voting' },
+    { id: 'announcements', label: 'Election Announcements', icon: <FaBullhorn />, path: '/announcements' },
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -27,7 +31,7 @@ const Sidebar = () => {
       <div style={sidebarHeaderStyle}>
         <h2 style={logoStyle}>DigiVote</h2>
       </div>
-      
+
       <nav style={navStyle}>
         {menuItems.map((item) => (
           <button
@@ -45,17 +49,16 @@ const Sidebar = () => {
       </nav>
 
       <div style={sidebarFooterStyle}>
-        <button
-          onClick={handleLogout}
-          style={logoutButtonStyle}
-        >
-          <span style={iconStyle}>🚪</span>
+        <button onClick={handleLogout} style={logoutButtonStyle}>
+          <span style={iconStyle}><FaSignOutAlt /></span>
           <span>Logout</span>
         </button>
       </div>
     </div>
   );
 };
+
+// --- Styles ---
 
 const sidebarStyle = {
   width: '280px',
@@ -119,7 +122,9 @@ const activeMenuItemStyle = {
 const iconStyle = {
   fontSize: '20px',
   width: '24px',
-  textAlign: 'center',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
 };
 
 const sidebarFooterStyle = {
@@ -146,4 +151,3 @@ const logoutButtonStyle = {
 };
 
 export default Sidebar;
-
