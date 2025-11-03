@@ -8,6 +8,7 @@ from routes.auth_routes import auth_bp
 from routes.candidate_routes import candidate_bp
 from routes.voting_routes import voting_bp
 from routes.result_routes import result_bp
+from routes.admin_routes import admin_bp
 
 
 def create_app() -> Flask:
@@ -46,6 +47,7 @@ def create_app() -> Flask:
     app.register_blueprint(candidate_bp)
     app.register_blueprint(voting_bp)
     app.register_blueprint(result_bp)
+    app.register_blueprint(admin_bp)
 
     return app
 
