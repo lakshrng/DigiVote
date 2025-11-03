@@ -17,7 +17,7 @@ const Sidebar = () => {
 
   // Replace emoji icons with react-icons components
   const menuItems = [
-    { id: 'home', label: 'Home', icon: <FaHome/>, path: '/home' },
+    { id: 'home', label: 'Home', icon: <FaHome />, path: '/home' },
     { id: 'apply', label: 'Candidate Apply', icon: <FaUserEdit />, path: '/apply' },
     { id: 'results', label: 'Check Results', icon: <FaPoll />, path: '/results' },
     { id: 'voting', label: 'Candidate Voting', icon: <FaVoteYea />, path: '/voting' },
