@@ -24,14 +24,13 @@ def submit_vote():
     
     election_id = data.get('election_id')
     student_id = data.get('student_id')
-    user_id = data.get('user_id')  # Also accept user_id as fallback
+    user_id = data.get('user_id') 
     votes_data = data.get('votes', {})  # Can be dict or array
     
     # Validation
     if not election_id:
         return jsonify({"error": "election_id is required"}), 400
     
-    # If student_id not provided but user_id is, look up student_id
     if not student_id and user_id:
         with get_session() as db_session:
             student = db_session.query(Student).filter(Student.user_id == user_id).first()

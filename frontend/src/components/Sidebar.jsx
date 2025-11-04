@@ -3,12 +3,12 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 // Import icons from react-icons
-import { FaHome, FaPoll, FaUserEdit, FaVoteYea, FaBullhorn, FaSignOutAlt } from 'react-icons/fa';
+import { FaHome, FaPoll, FaUserEdit, FaVoteYea, FaBullhorn, FaSignOutAlt, FaCog } from 'react-icons/fa';
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout, isAdmin } = useAuth();
 
   const handleLogout = async () => {
     await logout();
@@ -22,6 +22,7 @@ const Sidebar = () => {
     { id: 'results', label: 'Check Results', icon: <FaPoll />, path: '/results' },
     { id: 'voting', label: 'Candidate Voting', icon: <FaVoteYea />, path: '/voting' },
     { id: 'announcements', label: 'Election Announcements', icon: <FaBullhorn />, path: '/announcements' },
+    ...(isAdmin() ? [{ id: 'admin', label: 'Admin Dashboard', icon: <FaCog />, path: '/admin' }] : []),
   ];
 
   const isActive = (path) => location.pathname === path;

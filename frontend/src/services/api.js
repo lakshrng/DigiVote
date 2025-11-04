@@ -1,20 +1,35 @@
 import axios from 'axios';
 
-// Get API base URL from environment variable or use localhost as fallback
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
-
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: 'http://localhost:5000/api',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor to add auth token
+// Request interceptor to add auth token and user ID
 api.interceptors.request.use(
   (config) => {
-    // No token-based auth for now - using session-based auth
+    // Add user_id from localStorage if available (for admin routes)
+    try {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        if (user && user.id) {
+          // Add user_id as header (works for all HTTP methods)
+          config.headers['X-User-Id'] = user.id;
+          // Also add to request body for POST/PUT requests if it's JSON and has data
+          if (['POST', 'PUT', 'PATCH'].includes(config.method?.toUpperCase()) && 
+              config.data && typeof config.data === 'object' && !(config.data instanceof FormData)) {
+            // Merge user_id into existing data without overwriting
+            config.data = { ...config.data, user_id: user.id };
+          }
+        }
+      }
+    } catch (error) {
+      // Silently fail if localStorage is not available
+    }
     return config;
   },
   (error) => {
@@ -178,6 +193,129 @@ export const votingAPI = {
   // Get elections for results viewing
   getElectionsForResults: async () => {
     const response = await api.get('/voting/results/elections');
+    return response.data;
+  },
+};
+
+// Admin API functions
+export const adminAPI = {
+  // Get all elections (admin)
+  getAllElections: async () => {
+    // Get user_id from localStorage for GET requests
+    try {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        if (user && user.id) {
+          const response = await api.get('/admin/elections', {
+            params: { user_id: user.id }
+          });
+          return response.data;
+        }
+      }
+    } catch (error) {
+      console.error('Error getting user from localStorage:', error);
+    }
+    throw new Error('User not authenticated');
+  },
+
+  // Create election
+  createElection: async (electionData) => {
+    const response = await api.post('/admin/elections', electionData);
+    return response.data;
+  },
+
+  // Update election
+  updateElection: async (electionId, electionData) => {
+    const response = await api.put(`/admin/elections/${electionId}`, electionData);
+    return response.data;
+  },
+
+  // Delete election
+  deleteElection: async (electionId) => {
+    const response = await api.delete(`/admin/elections/${electionId}`);
+    return response.data;
+  },
+
+  // Get positions for election
+  getElectionPositions: async (electionId) => {
+    // Get user_id from localStorage for GET requests
+    try {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        if (user && user.id) {
+          const response = await api.get(`/admin/elections/${electionId}/positions`, {
+            params: { user_id: user.id }
+          });
+          return response.data;
+        }
+      }
+    } catch (error) {
+      console.error('Error getting user from localStorage:', error);
+    }
+    throw new Error('User not authenticated');
+  },
+
+  // Create position
+  createPosition: async (electionId, positionData) => {
+    const response = await api.post(`/admin/elections/${electionId}/positions`, positionData);
+    return response.data;
+  },
+
+  // Update position
+  updatePosition: async (positionId, positionData) => {
+    const response = await api.put(`/admin/positions/${positionId}`, positionData);
+    return response.data;
+  },
+
+  // Delete position
+  deletePosition: async (positionId) => {
+    const response = await api.delete(`/admin/positions/${positionId}`);
+    return response.data;
+  },
+
+  // Get statistics
+  getStatistics: async () => {
+    // Get user_id from localStorage for GET requests
+    try {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        if (user && user.id) {
+          const response = await api.get('/admin/statistics', {
+            params: { user_id: user.id }
+          });
+          return response.data;
+        }
+      }
+    } catch (error) {
+      console.error('Error getting user from localStorage:', error);
+    }
+    throw new Error('User not authenticated');
+  },
+
+  // Get pending applications
+  getPendingApplications: async () => {
+    const response = await api.get('/candidates/admin/pending');
+    return response.data;
+  },
+
+  // Approve candidate
+  approveCandidate: async (candidateId) => {
+    const response = await api.post(`/candidates/admin/${candidateId}/approve`);
+    return response.data;
+  },
+
+  // Reject candidate
+  rejectCandidate: async (candidateId, reason) => {
+    const response = await api.post(`/candidates/admin/${candidateId}/reject`, { reason });
+    return response.data;
+  },
+
+  // Get candidate statistics
+  getCandidateStatistics: async () => {
+    const response = await api.get('/candidates/admin/statistics');
     return response.data;
   },
 };

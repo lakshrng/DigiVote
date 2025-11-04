@@ -10,6 +10,7 @@ import CandidateVoting from "./components/auth/CandidateVoting";
 import CandidateApply from "./components/auth/CandidateApply";
 import CheckResults from "./components/auth/CheckResults";
 import Announcements from "./components/auth/Announcements";
+import AdminDashboard from "./components/auth/AdminDashboard";
 import './index.css';
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
             <Route path="/apply" element={<CandidateApply />} />
             <Route path="/results" element={<CheckResults />} />
             <Route path="/announcements" element={<Announcements />} />
+            <Route path="/admin" element={<AdminDashboard />} />
 
             {/* Default redirect */}
             <Route path="/" element={<Navigate to="/login" replace />} />
