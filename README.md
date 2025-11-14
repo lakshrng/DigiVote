@@ -1,5 +1,8 @@
 # DigiVote - Digital Voting Platform
 
+##GitHub link:
+https://github.com/lakshrng/DigiVote
+
 A comprehensive full-stack digital voting application built with Flask (Python) backend and React frontend, designed for secure, transparent, and efficient election management.
 
 ## 📋 Table of Contents
