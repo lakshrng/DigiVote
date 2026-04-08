@@ -140,7 +140,7 @@ const contentWrapperStyle = {
 };
 
 const heroSectionStyle = {
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  background: 'linear-gradient(180deg, #1b263b 0%, #0d1b2a 100%)',
   borderRadius: '16px',
   padding: '48px',
   marginBottom: '32px',
@@ -276,7 +276,7 @@ const featureCardStyle = {
 const imagePlaceholderStyle = {
   width: '100%',
   height: '200px',
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  background: 'linear-gradient(180deg, #1b263b 0%, #0d1b2a 100%)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',

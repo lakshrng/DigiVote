@@ -25,7 +25,7 @@ def get_all_elections_for_results():
             Election.status.in_(["ACTIVE", "COMPLETED", "ARCHIVED"])
         ).all()
         
-        elections_data = [
+        elections_data = [ 
             {
                 "id": election.id,
                 "title": election.title,

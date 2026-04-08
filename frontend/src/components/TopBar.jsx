@@ -184,7 +184,7 @@ const avatarStyle = {
   width: '38px',
   height: '38px',
   borderRadius: '50%',
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  background: 'linear-gradient(180deg, #1b263b 0%, #0d1b2a 100%)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',

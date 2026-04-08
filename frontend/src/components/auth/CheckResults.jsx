@@ -264,7 +264,7 @@ const CheckResults = () => {
                                     ...voteBarStyle,
                                     width: `${percentage}%`,
                                     background: isWinner
-                                      ? 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)'
+                                      ? 'linear-gradient(180deg, #1b263b 0%, #0d1b2a 100%)'
                                       : 'linear-gradient(90deg, #93c5fd 0%, #60a5fa 100%)',
                                   }}
                                 />
@@ -473,7 +473,7 @@ const electionCardInfoLabelStyle = {
 };
 
 const summaryCardStyle = {
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  background: 'linear-gradient(180deg, #1b263b 0%, #0d1b2a 100%)',
   borderRadius: '12px',
   padding: '32px',
   marginBottom: '32px',
@@ -600,7 +600,7 @@ const candidatePhotoPlaceholderStyle = {
   width: '64px',
   height: '64px',
   borderRadius: '50%',
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  background: 'linear-gradient(180deg, #1b263b 0%, #0d1b2a 100%)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',

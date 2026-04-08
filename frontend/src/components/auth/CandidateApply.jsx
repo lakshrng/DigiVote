@@ -161,7 +161,7 @@ const CandidateApply = () => {
         <TopBar />
         <div style={contentWrapperStyle}>
           <div style={containerStyle}>
-            <h1 style={titleStyle}>🎯 Candidate Application</h1>
+            <h1 style={titleStyle}> Candidate Application</h1>
             <p style={subtitleStyle}>Apply to become a candidate in upcoming elections</p>
 
             {success ? (
@@ -442,7 +442,7 @@ const submitButtonStyle = {
   padding: '14px 32px',
   borderRadius: '8px',
   border: 'none',
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  background: 'linear-gradient(180deg, #1b263b 0%, #0d1b2a 100%)',
   color: '#ffffff',
   fontSize: '16px',
   fontWeight: '600',

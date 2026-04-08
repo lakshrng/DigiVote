@@ -30,7 +30,7 @@ const Sidebar = () => {
   return (
     <div style={sidebarStyle}>
       <div style={sidebarHeaderStyle}>
-        <h2 style={logoStyle}>DigiVote</h2>
+        <h2 style={logoStyle}>Opiniote</h2>
       </div>
 
       <nav style={navStyle}>
